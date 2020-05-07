@@ -13,7 +13,6 @@ THREADS_PER_BLOCK = 1024
 
 # STANDARD OPTIONS
 MAIN_TARGET_NAME = gravity_simulator
-GPU_TARGET_NAME = add
 CXX := g++
 CXXFLAGS := -Wall -Wpedantic -std=c++11 -flto 
 LDFLAGS := -lgsl -lstdc++ 
@@ -24,12 +23,12 @@ CUSTOM_OPTS = -DOUTFILE_PREFIX=\"$(OUTFILE_PREFIX)\" -DN_PARTICLES=$(N_PARTICLES
 all: gpu_add main
 
 gpu_add:
-	nvcc $(NVCCFLAGS) -o $(GPU_TARGET_NAME) -DN_t=$(THREADS_PER_BLOCK) add.cu $(NVCCFLAGS_END)
+	nvcc $(NVCCFLAGS) -o shared/add.so -DN_t=$(THREADS_PER_BLOCK) src/add.cu $(NVCCFLAGS_END)
 
 main:
-	$(CXX) $(CXXFLAGS) -o $(MAIN_TARGET_NAME) main.cpp $(GPU_TARGET_NAME) $(LDFLAGS) -Wl,-R,'$$ORIGIN' $(CUSTOM_OPTS)
+	$(CXX) $(CXXFLAGS) -o $(MAIN_TARGET_NAME) src/main.cpp src/particles.cpp shared/add.so $(LDFLAGS) -Wl,-R,'$$ORIGIN' $(CUSTOM_OPTS)
 
 .PHONY: all clean
 
 clean:
-	rm $(GPU_TARGET_NAME) && rm $(MAIN_TARGET_NAME)
+	rm src/add.so && rm $(MAIN_TARGET_NAME)
